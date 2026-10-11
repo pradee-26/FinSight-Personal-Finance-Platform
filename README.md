@@ -16,7 +16,6 @@
 - [Configuration](#configuration)
 - [System Architecture](#system-architecture)
 - [Repository Structure](#repository-structure)
-- [Screenshots](#screenshots)
 - [Technologies](#technologies)
 - [Skills Demonstrated](#skills-demonstrated)
 - [Limitations and Future Improvements](#limitations-and-future-improvements)
