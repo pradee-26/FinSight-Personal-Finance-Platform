@@ -4,8 +4,6 @@
 
 [Overview](#project-overview) · [Getting Started](#getting-started) · [Features](#key-features) · [Structure](#repository-structure) · [Roadmap](#limitations-and-future-improvements)
 
-> **Draft note:** Lines marked `TODO` need your project-specific details. Replace each one and delete this note before committing.
-
 ---
 
 ## Table of Contents
