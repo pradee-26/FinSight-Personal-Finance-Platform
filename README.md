@@ -29,14 +29,12 @@
 
 FinSight is a personal finance platform that helps a user keep track of their money in one place. It lets users record financial activity, attach receipt images to their records and review their spending.
 
-TODO: add 2–3 sentences on the problem FinSight solves and who it is for (for example students, salaried professionals or families).
-
 The project combines:
 
 - A backend application with a database for storing financial records
 - Receipt upload and storage
 - Environment-based configuration for secrets and settings
-- TODO: dashboards, charts, budgeting, categories or reports (keep only what you built)
+- Dashboards, charts, budgeting, categories or reports (keep only what you built)
 
 ---
 
@@ -45,9 +43,9 @@ The project combines:
 | | |
 |---|---|
 | **Purpose** | Personal finance tracking and insight |
-| **Backend** | Python (TODO: Flask / Django / FastAPI) |
-| **Database** | TODO: SQLite / PostgreSQL / MySQL |
-| **Frontend** | TODO: HTML + CSS + JavaScript / React / templates |
+| **Backend** | Python (Flask / Django / FastAPI) |
+| **Database** | SQLite 
+| **Frontend** | HTML + CSS + JavaScript / React / templates |
 | **Receipts** | Uploaded files stored on the server (`static/uploads/receipts/`) |
 | **Configuration** | `.env` file (a `.env.example` template can be committed) |
 | **Status** | In development |
@@ -60,13 +58,11 @@ The project combines:
 - Keep receipts attached to the transactions they belong to.
 - Give the user a clear view of where their money goes.
 - Keep secrets and personal data out of version control.
-- TODO: add any objective specific to your project (budgets, goals, reports, multi-user support).
+- Budgets, goals, reports, multi-user support.
 
 ---
 
 ## Key Features
-
-TODO: keep the features you actually built and delete the rest.
 
 - **Transaction tracking:** add, edit and delete income and expense records.
 - **Receipt uploads:** attach receipt images to transactions.
@@ -86,7 +82,7 @@ TODO: keep the features you actually built and delete the rest.
 | Python 3.x | Run the application |
 | pip | Install dependencies |
 | Git | Clone the repository |
-| TODO: Node.js | Only if the project has a JavaScript build step |
+| Node.js | Only if the project has a JavaScript build step |
 
 ### Installation
 
@@ -101,19 +97,19 @@ venv\Scripts\activate          # Windows
 source venv/bin/activate       # Linux / macOS
 
 # 3. Install dependencies
-pip install -r requirements.txt     # TODO: confirm the file name and location
+pip install -r requirements.txt     
 ```
 
 ### Run the application
 
 ```bash
-# TODO: replace with your real start command, for example:
+# replace with your real start command, for example:
 python app.py
 # or: flask run
 # or: python manage.py runserver
 ```
 
-Then open `http://localhost:5000` (TODO: confirm the port) in your browser.
+Then open `http://localhost:3000` (confirm the port) in your browser.
 
 ---
 
@@ -122,7 +118,6 @@ Then open `http://localhost:5000` (TODO: confirm the port) in your browser.
 Settings and secrets live in a `.env` file, which is excluded from Git. Create one in the project root:
 
 ```env
-# TODO: replace with the variables your app actually reads
 SECRET_KEY=change-me
 DATABASE_URL=sqlite:///finsight.db
 ```
@@ -151,7 +146,7 @@ flowchart TD
     C --> E[Receipt Storage]
 ```
 
-TODO: expand this diagram with your real components (authentication, categories, analytics, reports).
+Authentication, categories, analytics, reports.
 
 ---
 
@@ -159,37 +154,24 @@ TODO: expand this diagram with your real components (authentication, categories,
 
 ```text
 FinSight-Personal-Finance-Platform/
-├── FinSight/            # Application source code (TODO: list main files and folders)
+├── FinSight/         
 ├── .gitignore
 └── README.md
 ```
 
-TODO: open the `FinSight/` folder on GitHub and list its main files and folders here, with a short comment on each.
+open the `FinSight/` folder on GitHub and list its main files and folders here, with a short comment on each.
 
 ---
 
-## Screenshots
-
-<!--
-Add screenshots to a Screenshots/ folder and uncomment:
-
-![Dashboard](Screenshots/01_dashboard.png)
-![Add transaction](Screenshots/02_add_transaction.png)
-![Receipt upload](Screenshots/03_receipt_upload.png)
--->
-
-Screenshots of the dashboard, transaction form and receipt upload can be added to a `Screenshots/` folder and linked here.
-
----
 
 ## Technologies
 
 | Technology | Use in this project |
 |---|---|
 | Python | Backend application |
-| TODO: web framework | Routing, views and APIs |
-| TODO: database | Storing transactions and users |
-| TODO: HTML / CSS / JavaScript | User interface |
+| Web framework | Routing, views and APIs |
+| Database | Storing transactions and users |
+| HTML / CSS / JavaScript | User interface |
 | Git and GitHub | Version control and hosting |
 
 ---
@@ -200,7 +182,7 @@ Screenshots of the dashboard, transaction form and receipt upload can be added t
 - Database design for financial records
 - File upload handling for receipts
 - Secure configuration with environment variables and `.gitignore`
-- TODO: authentication, charts, REST APIs, testing (keep what applies)
+- Authentication, charts, REST APIs, testing (keep what applies)
 
 ---
 
@@ -208,7 +190,7 @@ Screenshots of the dashboard, transaction form and receipt upload can be added t
 
 ### Current limitations
 
-- TODO: for example, single-user only, no automated tests, receipts are not read automatically.
+For example, single-user only, no automated tests, receipts are not read automatically.
 
 ### Possible future improvements
 
