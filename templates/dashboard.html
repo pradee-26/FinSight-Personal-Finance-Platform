@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <!-- Today's Expenses KPI -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card p-3 border-custom h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted-custom fs-7 fw-semibold">Today's Outlays</span>
+        <div class="bg-danger-subtle text-danger px-2 py-1 rounded fs-8 fw-bold">Today</div>
+      </div>
+      <h3 class="fw-bold mb-1">{{ currency_symbol }}{{ "%.2f"|format(today_expenses) }}</h3>
+      <small class="text-muted-custom">All logged expenses today</small>
+    </div>
+  </div>
+  
+  <!-- Current Savings KPI -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card p-3 border-custom h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted-custom fs-7 fw-semibold">Monthly Savings</span>
+        <div class="bg-success-subtle text-success px-2 py-1 rounded fs-8 fw-bold">This Month</div>
+      </div>
+      <h3 class="fw-bold mb-1 {% if current_savings < 0 %}text-danger{% else %}text-success{% endif %}">
+        {{ currency_symbol }}{{ "%.2f"|format(current_savings) }}
+      </h3>
+      <small class="text-muted-custom">Income vs Expenditures</small>
+    </div>
+  </div>
+
+  <!-- Budget Status KPI -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card p-3 border-custom h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted-custom fs-7 fw-semibold">Budget Utilization</span>
+        <div class="bg-warning-subtle text-warning px-2 py-1 rounded fs-8 fw-bold">{{ budget_pct }}%</div>
+      </div>
+      <h3 class="fw-bold mb-2">{{ currency_symbol }}{{ "%.2f"|format(total_budget_spent) }}</h3>
+      <div class="progress mb-1" style="height: 6px;">
+        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ budget_pct }}%" aria-valuenow="{{ budget_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      <small class="text-muted-custom">of {{ currency_symbol }}{{ "%.2f"|format(total_budget_limit) }} limits</small>
+    </div>
+  </div>
+
+  <!-- Portfolio Value KPI -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card p-3 border-custom h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted-custom fs-7 fw-semibold">Investment Valuation</span>
+        <div class="bg-primary-subtle text-primary px-2 py-1 rounded fs-8 fw-bold">All Time</div>
+      </div>
+      <h3 class="fw-bold mb-1 text-primary">{{ currency_symbol }}{{ "%.2f"|format(portfolio_value) }}</h3>
+      <small class="text-muted-custom">Stocks, ETF, Crypto value</small>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Side: Quick Actions, Intelligent Recommendations, Activities -->
+  <div class="col-lg-8">
+    
+    <!-- Quick Actions Panel -->
+    <div class="card p-4 border-custom mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-lightning-charge text-warning"></i> Dashboard Quick Actions</h5>
+      <div class="row g-2">
+        <div class="col-6 col-sm-3">
+          <button class="btn btn-outline-primary w-100 py-2.5 rounded-3 border-custom" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+            <i class="bi bi-plus-circle d-block mb-1 fs-5"></i> Add Cash Flow
+          </button>
+        </div>
+        <div class="col-6 col-sm-3">
+          <button class="btn btn-outline-primary w-100 py-2.5 rounded-3 border-custom" onclick="location.href='{{ url_for('budgets') }}'">
+            <i class="bi bi-graph-up d-block mb-1 fs-5"></i> Set Budgets
+          </button>
+        </div>
+        <div class="col-6 col-sm-3">
+          <button class="btn btn-outline-primary w-100 py-2.5 rounded-3 border-custom" onclick="location.href='{{ url_for('investments') }}'">
+            <i class="bi bi-briefcase d-block mb-1 fs-5"></i> Log Asset
+          </button>
+        </div>
+        <div class="col-6 col-sm-3">
+          <button class="btn btn-outline-primary w-100 py-2.5 rounded-3 border-custom" onclick="location.href='{{ url_for('goals') }}'">
+            <i class="bi bi-flag d-block mb-1 fs-5"></i> Log Goal
+          </button>
+        </div>
+      </div>
+      <div class="row g-2 mt-2">
+        <div class="col-12 col-sm-6">
+          <a href="{{ url_for('export_pdf') }}" class="btn btn-primary-gradient w-100 py-2.5">
+            <i class="bi bi-file-earmark-pdf me-2"></i> Download Monthly PDF Report
+          </a>
+        </div>
+        <div class="col-12 col-sm-6">
+          <button class="btn btn-dark w-100 py-2.5 rounded-3 border-custom" onclick="askAiAdvisor()">
+            <i class="bi bi-stars me-2 text-warning"></i> Trigger Gemini AI Analyst
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gemini Response Block -->
+    <div class="card p-4 border-custom mb-4 d-none" id="geminiBox">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-stars text-warning"></i> FinSight AI Advisor Response</h5>
+        <button type="button" class="btn-close" onclick="document.getElementById('geminiBox').classList.add('d-none')"></button>
+      </div>
+      <div class="text-primary-custom" id="geminiOutput">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div> Running Gemini intelligence analyses...
+      </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="card p-4 border-custom">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0"><i class="bi bi-clock-history"></i> Recent Transactions</h5>
+        <a href="{{ url_for('expenses') }}" class="text-decoration-none fw-semibold fs-7">View All Transactions <i class="bi bi-arrow-right"></i></a>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table align-middle table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Receipt</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in recent_transactions %}
+              <tr>
+                <td class="text-muted-custom fs-7">{{ e.date.strftime('%Y-%m-%d') }}</td>
+                <td><span class="badge rounded-pill bg-light text-dark border-custom">{{ e.category }}</span></td>
+                <td class="text-truncate" style="max-width: 200px;">{{ e.description or '-' }}</td>
+                <td>
+                  {% if e.receipt_filename %}
+                    <img src="/static/uploads/receipts/{{ e.receipt_filename }}" alt="Receipt" class="receipt-thumbnail" onclick="viewReceipt('{{ e.receipt_filename }}')">
+                  {% else %}
+                    <span class="text-muted fs-8">-</span>
+                  {% endif %}
+                </td>
+                <td class="fw-bold {% if e.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                  {% if e.type == 'income' %}+{% else %}-{% endif %}{{ currency_symbol }}{{ "%.2f"|format(e.amount) }}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted-custom py-4">No logged transactions found. Add expenses to get started.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Goal Progress Section -->
+    <div class="card p-4 border-custom mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0"><i class="bi bi-flag-fill text-primary"></i> Goal Progress</h5>
+        <a href="{{ url_for('goals') }}" class="text-decoration-none fw-semibold fs-7">Manage Goals <i class="bi bi-arrow-right"></i></a>
+      </div>
+      
+      {% if current_user.goals %}
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+          {% for g in current_user.goals %}
+            <div class="col">
+              <div class="card h-100 border-custom p-3 bg-light-accent shadow-sm">
+                <!-- Header: Icon & Badge -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fs-8.5 fw-bold text-dark">
+                    {% if g.category == 'Savings' %}
+                      <i class="bi bi-piggy-bank text-success me-1"></i>
+                    {% elif g.category == 'Education' %}
+                      <i class="bi bi-book text-primary me-1"></i>
+                    {% elif g.category == 'Travel' %}
+                      <i class="bi bi-airplane text-info me-1"></i>
+                    {% elif g.category == 'Retirement' %}
+                      <i class="bi bi-shield-lock text-warning me-1"></i>
+                    {% elif g.category == 'Property' %}
+                      <i class="bi bi-house text-danger me-1"></i>
+                    {% else %}
+                      <i class="bi bi-flag text-secondary me-1"></i>
+                    {% endif %}
+                    {{ g.name }}
+                  </span>
+                  {% if g.status == 'Completed' %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle fs-9 px-2 py-0.5">Completed</span>
+                  {% elif g.status == 'Overdue' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-9 px-2 py-0.5">Overdue</span>
+                  {% else %}
+                    <span class="badge bg-info-subtle text-info border border-info-subtle fs-9 px-2 py-0.5">In Progress</span>
+                  {% endif %}
+                </div>
+                
+                <!-- Deadline & Days Left -->
+                <div class="text-muted-custom fs-9 mb-2">
+                  <span>Deadline: {{ g.deadline.strftime('%Y-%m-%d') }}</span>
+                  <span class="d-block mt-0.5">
+                    {% if g.status == 'Completed' %}
+                      <span class="text-success fw-semibold"><i class="bi bi-check2-circle"></i> Milestone Achieved!</span>
+                    {% elif g.days_remaining < 0 %}
+                      <span class="text-danger fw-semibold"><i class="bi bi-clock-history"></i> Overdue by {{ g.days_remaining | abs }} days</span>
+                    {% else %}
+                      <span class="text-primary fw-semibold"><i class="bi bi-clock"></i> {{ g.days_remaining }} days remaining</span>
+                    {% endif %}
+                  </span>
+                </div>
+                
+                <!-- Details -->
+                <div class="d-flex justify-content-between align-items-center fs-8.5 mb-2">
+                  <span class="text-muted-custom">Saved: <strong class="text-success">{{ currency_symbol }}{{ "%.2f"|format(g.current_amount) }}</strong></span>
+                  <span class="text-muted-custom">Target: <strong class="text-dark">{{ currency_symbol }}{{ "%.2f"|format(g.target_amount) }}</strong></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center fs-8.5 mb-2">
+                  <span class="text-muted-custom">Remaining Needed:</span>
+                  <span class="fw-bold text-secondary">{{ currency_symbol }}{{ "%.2f"|format(g.remaining_amount) }}</span>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-1 fs-9">
+                    <span class="text-muted-custom">Progress:</span>
+                    <span class="fw-bold text-primary">{{ g.pct }}%</span>
+                  </div>
+                  <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-gradient {% if g.status == 'Completed' %}bg-success{% elif g.status == 'Overdue' %}bg-danger{% else %}bg-primary{% endif %}" 
+                         role="progressbar" 
+                         style="width: {{ g.pct }}%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted-custom">
+          <i class="bi bi-flag fs-3 text-primary d-block mb-2"></i>
+          <h6 class="fw-bold mb-1">No Financial Goals Found.</h6>
+          <p class="fs-8 mb-3">Define target milestones to secure your cash runways.</p>
+          <a href="{{ url_for('goals') }}" class="btn btn-sm btn-outline-primary px-3 py-1.5 border-custom">Establish First Saving Goal</a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Right Side: Health Score gauge & Active alerts list -->
+  <div class="col-lg-4">
+    
+    <!-- Health Score Badge -->
+    <div class="card p-4 border-custom text-center mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-heart-pulse text-danger"></i> Financial Health Score</h5>
+      
+      <div class="health-score-container my-4">
+        <svg class="health-circle-svg" width="140" height="140">
+          <circle class="health-bg-track" cx="70" cy="70" r="60"></circle>
+          <!-- Score percentage calculation logic for dashoffset -->
+          <circle class="health-progress-bar" id="healthProgress" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="377"></circle>
+        </svg>
+        <div class="health-score-text">
+          <h2 class="fw-extrabold mb-0 fw-bold text-primary">{{ health.score }}</h2>
+          <small class="text-muted-custom fs-8">/ 100</small>
+        </div>
+      </div>
+      
+      <div class="badge bg-{{ health.badge_color }} p-2 rounded-3 fs-6 mb-3">{{ health.label }}</div>
+      <p class="text-muted-custom fs-7 mb-0">Your financial safety vector is computed weekly based on income-expense savings coefficients, goals milestones, and active budget overruns.</p>
+      
+      <!-- Savings streak count indicator -->
+      {% if current_user.savings_streak > 0 %}
+        <hr class="my-3 border-custom">
+        <div class="d-flex justify-content-center align-items-center gap-2">
+          <div class="bg-warning-subtle text-warning p-2 rounded-circle d-flex align-items-center justify-content-center">
+            <i class="bi bi-fire fs-5"></i>
+          </div>
+          <div class="text-start">
+            <h6 class="mb-0 fw-bold">Savings Streak Badge</h6>
+            <small class="text-muted-custom fs-8">{{ current_user.savings_streak }} Months consecutively saving</small>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Active Intelligent Alerts Notification widget -->
+    <div class="card p-4 border-custom">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-bell-fill text-warning"></i> Recent Alerts</h5>
+        <a href="{{ url_for('notifications') }}" class="text-decoration-none fs-8 fw-semibold">Manage Alerts</a>
+      </div>
+      
+      <div class="d-flex flex-column gap-2.5">
+        {% for alert in unread_notifications[:4] %}
+          <div class="p-3 bg-light rounded-3 border-start border-4 border-{{ 'warning' if alert.type == 'warning' else ('danger' if alert.type == 'danger' else 'info') }} border-custom text-dark mb-2">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <span class="fs-8 fw-semibold text-capitalize text-muted mb-1">{{ alert.type }} Notification</span>
+              <button class="btn btn-link p-0 text-muted border-0 fs-8" onclick="quickMarkRead({{ alert.id }}, this)">Mark read</button>
+            </div>
+            <p class="mb-0 fs-7.5 fw-medium">{{ alert.message }}</p>
+          </div>
+        {% else %}
+          <div class="text-center text-muted-custom py-4">
+            <i class="bi bi-check-circle fs-3 text-success d-block mb-2"></i>
+            <span class="fs-7.5">All clear! No unread active alerts.</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="addExpenseModalLabel">Add Income / Expense Transaction</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('expenses') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="add">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Transaction Type</label>
+            <div class="d-flex gap-4">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="type" id="typeExpense" value="expense" checked>
+                <label class="form-check-label" for="typeExpense">Expense (Outflow)</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="type" id="typeIncome" value="income">
+                <label class="form-check-label" for="typeIncome">Income (Inflow)</label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="category" class="form-label fw-semibold">Category</label>
+            <select class="form-select border-custom" id="category" name="category" required>
+              <option value="Groceries">Groceries</option>
+              <option value="Dining Out">Dining Out</option>
+              <option value="Housing">Housing</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Salary">Salary</option>
+              <option value="Investment Income">Investment Income</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="amount" class="form-label fw-semibold">Amount ({{ currency_symbol }})</label>
+            <input type="number" step="0.01" class="form-control border-custom" id="amount" name="amount" placeholder="0.00" required>
+          </div>
+          <div class="mb-3">
+            <label for="date" class="form-label fw-semibold">Date</label>
+            <input type="date" class="form-control border-custom" id="date" name="date" required value="{{ start_date if start_date else today_date }}">
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label fw-semibold">Description / Notes</label>
+            <input type="text" class="form-control border-custom" id="description" name="description" placeholder="Walmart shopping, bonus etc.">
+          </div>
+          <div class="mb-3">
+            <label for="receipt" class="form-label fw-semibold">Upload Receipt Image (Optional)</label>
+            <input class="form-control border-custom" type="file" id="receipt" name="receipt" accept="image/png, image/jpeg, image/jpg">
+            <small class="text-muted d-block mt-1">Supported formats: JPG, PNG under 5MB.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-gradient">Add Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt Lightbox Modal -->
+<div class="modal fade" id="receiptLightbox" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center pt-0">
+        <img src="" id="lightboxImg" alt="Receipt Preview" class="img-fluid rounded-3 max-h-screen border-custom shadow">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Animate circular health gauge based on score percent
+    const score = parseInt("{{ health.score }}");
+    const circle = document.getElementById("healthProgress");
+    if(circle) {
+      const radius = circle.r.baseVal.value;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (score / 100) * circumference;
+      
+      setTimeout(() => {
+        circle.style.strokeDashoffset = offset;
+      }, 300);
+    }
+    
+    // Set default date picker to today
+    const dateInput = document.getElementById("date");
+    if(dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+  });
+
+  function viewReceipt(filename) {
+    const img = document.getElementById("lightboxImg");
+    img.src = "/static/uploads/receipts/" + filename;
+    const modal = new bootstrap.Modal(document.getElementById('receiptLightbox'));
+    modal.show();
+  }
+
+  function quickMarkRead(notifId, btn) {
+    fetch("/notifications/read/" + notifId, { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) {
+        // Remove notification widget from side list smoothly
+        btn.closest('.p-3').remove();
+      }
+    });
+  }
+
+  function askAiAdvisor() {
+    const box = document.getElementById("geminiBox");
+    const output = document.getElementById("geminiOutput");
+    
+    box.classList.remove("d-none");
+    output.innerHTML = `<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Querying AI Advisory models...`;
+    
+    fetch("/api/ai/recommendations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customPrompt: "" })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) {
+        output.innerHTML = `
+          <div class="p-2 mb-2 bg-light rounded text-muted fs-8 text-dark"><i class="bi bi-shield"></i> Calculated via <strong>${data.source}</strong></div>
+          <div>${data.response}</div>
+        `;
+      } else {
+        output.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> Failed to build advisor responses. Please try again.</span>`;
+      }
+    })
+    .catch(() => {
+      output.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> Network failure. Check server terminal logs.</span>`;
+    });
+  }
+</script>
+{% endblock %}

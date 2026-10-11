@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card p-4 border-custom mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <h3 class="fw-bold mb-1">Financial Goals Tracker</h3>
+      <p class="text-secondary mb-0">Record and track long-term saving targets, set target milestones, and log incremental progress contributions.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('export_excel', module='goals') }}" class="btn btn-outline-success border-custom">
+        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+      </a>
+      <a href="{{ url_for('export_csv', module='goals') }}" class="btn btn-outline-secondary border-custom">
+        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+      </a>
+      <button class="btn btn-primary-gradient" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+        <i class="bi bi-plus-circle me-1"></i> Establish Goal
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Goals Progress Cards Grid -->
+  <div class="col-lg-8">
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+      {% for g in goals %}
+        <div class="col">
+          <div class="card h-100 border-custom shadow-sm bg-white">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+              <div>
+                <!-- Category Icon & Name -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="badge rounded-pill bg-light text-dark border-custom px-3 py-1.5 fs-8 fw-semibold">
+                    {% if g.category == 'Savings' %}
+                      <i class="bi bi-piggy-bank text-success me-1"></i>
+                    {% elif g.category == 'Education' %}
+                      <i class="bi bi-book text-primary me-1"></i>
+                    {% elif g.category == 'Travel' %}
+                      <i class="bi bi-airplane text-info me-1"></i>
+                    {% elif g.category == 'Retirement' %}
+                      <i class="bi bi-shield-lock text-warning me-1"></i>
+                    {% elif g.category == 'Property' %}
+                      <i class="bi bi-house text-danger me-1"></i>
+                    {% else %}
+                      <i class="bi bi-flag text-secondary me-1"></i>
+                    {% endif %}
+                    {{ g.category }}
+                  </span>
+                  
+                  <!-- Status Badge -->
+                  {% if g.status == 'Completed' %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle fs-8.5 px-2.5 py-1">
+                      <i class="bi bi-check-circle-fill me-1"></i> Completed
+                    </span>
+                  {% elif g.status == 'Overdue' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-8.5 px-2.5 py-1">
+                      <i class="bi bi-exclamation-triangle-fill me-1"></i> Overdue
+                    </span>
+                  {% else %}
+                    <span class="badge bg-info-subtle text-info border border-info-subtle fs-8.5 px-2.5 py-1">
+                      <i class="bi bi-hourglass-split me-1"></i> In Progress
+                    </span>
+                  {% endif %}
+                </div>
+                
+                <!-- Goal Name -->
+                <h5 class="fw-bold text-dark mb-2">{{ g.name }}</h5>
+                
+                <!-- Deadline / Days Remaining -->
+                <div class="text-muted-custom fs-8.5 mb-3">
+                  <i class="bi bi-calendar-event me-1"></i> Deadline: {{ g.deadline.strftime('%Y-%m-%d') }}
+                  <span class="d-block mt-1">
+                    {% if g.status == 'Completed' %}
+                      <span class="text-success fw-semibold"><i class="bi bi-check-all"></i> Target Achieved!</span>
+                    {% elif g.days_remaining < 0 %}
+                      <span class="text-danger fw-semibold"><i class="bi bi-clock-history"></i> Overdue by {{ g.days_remaining | abs }} days</span>
+                    {% elif g.days_remaining == 0 %}
+                      <span class="text-warning fw-semibold"><i class="bi bi-clock"></i> Deadline is today!</span>
+                    {% else %}
+                      <span class="text-primary fw-semibold"><i class="bi bi-clock"></i> {{ g.days_remaining }} days left</span>
+                    {% endif %}
+                  </span>
+                </div>
+                
+                <!-- Amount Details -->
+                <div class="row g-2 mb-3">
+                  <div class="col-6">
+                    <div class="bg-light p-2.5 rounded-3 border-custom text-center">
+                      <small class="text-muted fs-9 d-block uppercase mb-0.5">SAVED</small>
+                      <span class="fw-bold text-success fs-7.5">{{ currency_symbol }}{{ "%.2f"|format(g.current_amount) }}</span>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="bg-light p-2.5 rounded-3 border-custom text-center">
+                      <small class="text-muted fs-9 d-block uppercase mb-0.5">TARGET</small>
+                      <span class="fw-bold text-dark fs-7.5">{{ currency_symbol }}{{ "%.2f"|format(g.target_amount) }}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Remaining Amount -->
+                <div class="d-flex justify-content-between align-items-center mb-2 fs-8.5">
+                  <span class="text-muted-custom">Remaining Need:</span>
+                  <span class="fw-bold text-secondary">{{ currency_symbol }}{{ "%.2f"|format(g.remaining_amount) }}</span>
+                </div>
+                
+                <!-- Progress Bar & Percentage -->
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-1 fs-8.5">
+                    <span class="text-muted-custom">Progress:</span>
+                    <span class="fw-bold text-primary">{{ g.pct }}%</span>
+                  </div>
+                  <div class="progress" style="height: 10px; border-radius: 6px;">
+                    <div class="progress-bar bg-gradient {% if g.status == 'Completed' %}bg-success{% elif g.status == 'Overdue' %}bg-danger{% else %}bg-primary{% endif %}" 
+                         role="progressbar" 
+                         style="width: {{ g.pct }}%" 
+                         aria-valuenow="{{ g.pct }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-custom">
+                <button class="btn btn-sm btn-outline-primary px-3 border-custom fs-8.5" onclick="triggerContribute({{ g.id }}, '{{ g.name }}')">
+                  <i class="bi bi-piggy-bank-fill me-1"></i> Log Contribution
+                </button>
+                
+                <form action="{{ url_for('goals') }}" method="POST" class="d-inline mb-0">
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="goal_id" value="{{ g.id }}">
+                  <button type="submit" class="btn btn-link text-danger p-0 fs-8 border-0" onclick="return confirm('Delete this target goal?')">
+                    <i class="bi bi-trash3 me-1"></i> Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="col-12 w-100">
+          <div class="card p-5 border-custom text-center shadow-sm bg-white">
+            <div class="py-4">
+              <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex p-4 mb-4">
+                <i class="bi bi-flag fs-1"></i>
+              </div>
+              <h4 class="fw-bold text-dark mb-2">No Financial Goals Found.</h4>
+              <p class="text-secondary mb-4 mx-auto" style="max-width: 480px;">Define and track savings targets for vacations, properties, emergency funds, or retirement. Log continuous contributions and see your wealth milestones build up.</p>
+              <button class="btn btn-primary-gradient px-4 py-2.5" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+                <i class="bi bi-plus-circle me-1"></i> Establish Your First Goal
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  
+  <!-- Right Column: Goals Advisory & Statistics -->
+  <div class="col-lg-4">
+    <div class="card p-4 border-custom h-100 bg-light-accent">
+      <h5 class="fw-bold text-primary mb-3"><i class="bi bi-stars"></i> Target Goal Analytics</h5>
+      <p class="text-muted-custom fs-7.5 mb-4">FinSight analytics computed metrics dynamically relative to user salary coefficients and saving velocities.</p>
+      
+      <div class="card p-3 border-custom bg-white mb-3 shadow-sm">
+        <small class="text-muted fs-8 d-block mb-1">TOTAL SUM TO SECURE</small>
+        <h4 class="fw-bold mb-0 text-dark">{{ currency_symbol }}{{ "%.2f"|format(total_target) }}</h4>
+      </div>
+      
+      <div class="card p-3 border-custom bg-white mb-3 shadow-sm">
+        <small class="text-muted fs-8 d-block mb-1">CUMULATIVE FUNDS ALLOCATED</small>
+        <h4 class="fw-bold mb-0 text-success">{{ currency_symbol }}{{ "%.2f"|format(total_saved) }}</h4>
+      </div>
+ 
+      <div class="card p-3 border-custom bg-white shadow-sm">
+        <small class="text-muted fs-8 d-block mb-1">PORTFOLIO DEBT/EQUITY TARGETS</small>
+        <h5 class="fw-semibold text-dark fs-7 mb-2">Completion Velocity Rate</h5>
+        <p class="fs-8 text-muted-custom mb-0">At current saving velocities, your milestone goals show stable projection velocities over specified periods.</p>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- Add Goal Modal -->
+<div class="modal fade" id="addGoalModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Define Saving Goal Target</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('goals') }}" method="POST">
+        <input type="hidden" name="action" value="add">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="name" class="form-label fw-semibold">Goal Description Name</label>
+            <input type="text" class="form-control border-custom" id="name" name="name" placeholder="Emergency Fund / Car Downpayment" required>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="target_amount" class="form-label fw-semibold">Target Amount ({{ currency_symbol }})</label>
+              <input type="number" step="0.01" class="form-control border-custom" id="target_amount" name="target_amount" placeholder="10000.00" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="current_amount" class="form-label fw-semibold">Starting Amount Saved ({{ currency_symbol }})</label>
+              <input type="number" step="0.01" class="form-control border-custom" id="current_amount" name="current_amount" placeholder="0.00" value="0.00">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="category" class="form-label fw-semibold">Category</label>
+            <select class="form-select border-custom" id="category" name="category" required>
+              <option value="Savings">Savings</option>
+              <option value="Education">Education</option>
+              <option value="Travel">Travel</option>
+              <option value="Retirement">Retirement</option>
+              <option value="Property">Property</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="target_date" class="form-label fw-semibold">Target Accomplishment Date</label>
+            <input type="date" class="form-control border-custom" id="target_date" name="deadline" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-gradient">Establish Saving Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Contribute Modal -->
+<div class="modal fade" id="contributeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Deposit Contribution Funds</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('goals') }}" method="POST">
+        <input type="hidden" name="action" value="contribute">
+        <input type="hidden" name="goal_id" id="contributeGoalId">
+        <div class="modal-body">
+          <p class="fs-7.5 text-muted-custom">Add saved funds securely towards your <strong class="text-primary" id="contributeGoalName"></strong> target goal.</p>
+          <div class="mb-3">
+            <label for="contribution" class="form-label fw-semibold">Contribution Deposit Amount ({{ currency_symbol }})</label>
+            <input type="number" step="0.01" class="form-control border-custom" id="contribution" name="contribution" placeholder="250.00" required>
+            <small class="text-muted d-block mt-1">This will update the current saved amounts of this target milestone.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-gradient">Deposit Funds</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const dateField = document.getElementById("target_date");
+    if(dateField) {
+      const oneYearOut = new Date();
+      oneYearOut.setFullYear(oneYearOut.getFullYear() + 1);
+      dateField.value = oneYearOut.toISOString().split('T')[0];
+    }
+  });
+
+  function triggerContribute(goalId, goalName) {
+    document.getElementById("contributeGoalId").value = goalId;
+    document.getElementById("contributeGoalName").textContent = goalName;
+    const modal = new bootstrap.Modal(document.getElementById('contributeModal'));
+    modal.show();
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en" {% if current_user.is_authenticated and current_user.theme_mode == 'dark' %}class="dark-theme"{% endif %}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSight - Personal Finance & Investment Intelligence</title>
+    
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    
+    <!-- Custom Banking Theme CSS -->
+    <style>
+      :root {
+        --primary-blue: #0d6efd;
+        --secondary-white: #ffffff;
+        --accent-light-blue: #eef2ff;
+        --sidebar-dark-blue: #0f172a;
+        --body-bg: #f8fafc;
+        --card-bg: #ffffff;
+        --text-primary: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --btn-gradient: linear-gradient(135deg, #0d6efd 0%, #0284c7 100%);
+      }
+
+      /* Dark Theme Variable Overrides */
+      .dark-theme {
+        --primary-blue: #38bdf8;
+        --secondary-white: #1e293b;
+        --accent-light-blue: #0f172a;
+        --sidebar-dark-blue: #020617;
+        --body-bg: #0f172a;
+        --card-bg: #1e293b;
+        --text-primary: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border-color: #334155;
+        --btn-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      }
+
+      body {
+        background-color: var(--body-bg);
+        color: var(--text-primary);
+        font-family: 'Inter', -apple-system, sans-serif;
+        min-height: 100vh;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      /* Sidebar styling */
+      .sidebar {
+        background-color: var(--sidebar-dark-blue);
+        min-height: 100vh;
+        width: 260px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        transition: width 0.3s, background-color 0.3s;
+      }
+
+      .sidebar .nav-link {
+        color: #94a3b8;
+        padding: 12px 20px;
+        font-weight: 500;
+        border-radius: 8px;
+        margin: 4px 14px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .sidebar .nav-link:hover, .sidebar .nav-link.active {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.08);
+      }
+
+      .sidebar .nav-link.active {
+        background-color: #0d6efd;
+        background-image: linear-gradient(135deg, #0d6efd, #0284c7);
+      }
+
+      .main-content {
+        margin-left: 260px;
+        padding: 24px;
+        transition: margin-left 0.3s;
+      }
+
+      /* Card styling */
+      .card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
+      }
+
+      .card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Custom Buttons */
+      .btn-primary-gradient {
+        background: var(--btn-gradient);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
+        transition: all 0.2s;
+      }
+
+      .btn-primary-gradient:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(13, 110, 253, 0.3);
+      }
+
+      /* Utilities and custom accents */
+      .text-muted-custom {
+        color: var(--text-muted) !important;
+      }
+
+      .border-custom {
+        border-color: var(--border-color) !important;
+      }
+
+      .accent-badge {
+        background-color: var(--accent-light-blue);
+        color: var(--primary-blue);
+        font-weight: 600;
+      }
+
+      /* Notification badge positioning */
+      .notification-bell-container {
+        position: relative;
+        cursor: pointer;
+      }
+
+      .unread-badge-dot {
+        position: absolute;
+        top: -4px;
+        right: -2px;
+        width: 8px;
+        height: 8px;
+        background-color: #ef4444;
+        border-radius: 50%;
+        border: 2px solid var(--card-bg);
+      }
+
+      /* Header user controls */
+      .header-navbar {
+        background-color: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+        padding: 14px 24px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.3s, border-color 0.3s;
+      }
+
+      /* Circular Health score gauge styling */
+      .health-score-container {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        margin: 0 auto;
+      }
+
+      .health-circle-svg {
+        transform: rotate(-90deg);
+      }
+
+      .health-bg-track {
+        fill: none;
+        stroke: var(--border-color);
+        stroke-width: 8;
+      }
+
+      .health-progress-bar {
+        fill: none;
+        stroke: var(--primary-blue);
+        stroke-width: 8;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s ease-in-out;
+      }
+
+      .health-score-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+
+      /* Response table thumbnail */
+      .receipt-thumbnail {
+        width: 42px;
+        height: 42px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .receipt-thumbnail:hover {
+        transform: scale(1.1);
+      }
+
+      /* Responsive layout collapses */
+      @media (max-width: 991px) {
+        .sidebar {
+          width: 0;
+          overflow: hidden;
+        }
+        .sidebar.show {
+          width: 260px;
+        }
+        .main-content {
+          margin-left: 0;
+        }
+      }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    
+    {% if current_user.is_authenticated %}
+      <!-- Sidebar Navigation Menu -->
+      <div class="sidebar d-flex flex-column" id="sidebarMenu">
+        <div class="p-4 d-flex align-items-center gap-3">
+          <div class="bg-primary bg-gradient p-2 rounded-3 text-white">
+            <i class="bi bi-wallet2 fs-4"></i>
+          </div>
+          <div>
+            <h5 class="text-white mb-0 font-monospace fw-bold">FINSIGHT</h5>
+            <small class="text-secondary">Wealth Intelligence</small>
+          </div>
+        </div>
+        
+        <hr class="text-secondary mx-3 my-2">
+        
+        <ul class="nav flex-column mb-auto">
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == url_for('dashboard') %}active{% endif %}" href="{{ url_for('dashboard') }}">
+              <i class="bi bi-grid-1x2"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == url_for('expenses') %}active{% endif %}" href="{{ url_for('expenses') }}">
+              <i class="bi bi-currency-dollar"></i> Expenses & Cash
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == url_for('budgets') %}active{% endif %}" href="{{ url_for('budgets') }}">
+              <i class="bi bi-graph-up-arrow"></i> Budgets
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == url_for('investments') %}active{% endif %}" href="{{ url_for('investments') }}">
+              <i class="bi bi-briefcase"></i> Investments
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == url_for('goals') %}active{% endif %}" href="{{ url_for('goals') }}">
+              <i class="bi bi-flag"></i> Financial Goals
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == url_for('analytics') %}active{% endif %}" href="{{ url_for('analytics') }}">
+              <i class="bi bi-pie-chart"></i> Analytics
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == url_for('advisor_view') %}active{% endif %}" href="{{ url_for('advisor_view') }}">
+              <i class="bi bi-cpu"></i> AI Financial Advisor
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.path == url_for('profile') %}active{% endif %}" href="{{ url_for('profile') }}">
+              <i class="bi bi-person-gear"></i> Settings & Profile
+            </a>
+          </li>
+        </ul>
+        
+        <div class="p-3">
+          <a class="nav-link text-danger bg-transparent" href="{{ url_for('logout') }}">
+            <i class="bi bi-box-arrow-right"></i> Sign Out
+          </a>
+        </div>
+      </div>
+      
+      <!-- Main Work Canvas -->
+      <div class="main-content">
+        <!-- Top bar layout container -->
+        <div class="header-navbar">
+          <!-- Left: mobile menu togglers & path info -->
+          <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-outline-secondary d-lg-none" type="button" onclick="toggleSidebar()">
+              <i class="bi bi-list"></i>
+            </button>
+            <h4 class="mb-0 fw-bold">Platform Workspace</h4>
+          </div>
+          
+          <!-- Right: Action elements / theme toggle, notifications & user profile -->
+          <div class="d-flex align-items-center gap-4">
+            <!-- Theme Toggle Icon -->
+            <button class="btn btn-link text-muted-custom p-0 fs-4 border-0" type="button" onclick="ajaxToggleTheme()">
+              <i class="bi bi-brightness-high" id="themeModeIcon"></i>
+            </button>
+            
+            <!-- Notification bell -->
+            <div class="notification-bell-container text-muted-custom fs-4" onclick="location.href='{{ url_for('notifications') }}'">
+              <i class="bi bi-bell"></i>
+              <div class="unread-badge-dot d-none" id="notifBellDot"></div>
+            </div>
+            
+            <!-- Profile Thumbnail with drop control -->
+            <div class="dropdown">
+              <div class="d-flex align-items-center gap-2 cursor-pointer dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                <img src="/static/uploads/profiles/{{ current_user.profile_pic }}" alt="Profile Photo" class="rounded-circle" width="38" height="38" style="object-fit: cover;" onerror="this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'">
+                <div class="d-none d-md-block text-start">
+                  <h6 class="mb-0 fw-semibold fs-7">{{ current_user.username }}</h6>
+                  <small class="text-muted-custom fs-8">Wealth Account</small>
+                </div>
+              </div>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-custom rounded-3">
+                <li><a class="dropdown-item py-2" href="{{ url_for('profile') }}"><i class="bi bi-person me-2"></i> My Profile</a></li>
+                <li><a class="dropdown-item py-2" href="{{ url_for('notifications') }}"><i class="bi bi-bell me-2"></i> Alerts center</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Alerts flash handler container -->
+        <div class="container-fluid px-0">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show rounded-3" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    {% else %}
+      <!-- Auth Screen View Layout -->
+      <div class="container py-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show rounded-3 max-w-md mx-auto" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        {% block auth_content %}{% endblock %}
+      </div>
+    {% endif %}
+
+    <!-- Bootstrap 5 Bundle JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom theme control JS -->
+    <script>
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebarMenu");
+        if(sidebar) sidebar.classList.toggle("show");
+      }
+      
+      function ajaxToggleTheme() {
+        fetch("{{ url_for('toggle_theme') }}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const htmlTag = document.documentElement;
+            const icon = document.getElementById("themeModeIcon");
+            if (data.theme === 'dark') {
+              htmlTag.classList.add("dark-theme");
+              icon.className = "bi bi-moon-stars text-info";
+            } else {
+              htmlTag.classList.remove("dark-theme");
+              icon.className = "bi bi-brightness-high";
+            }
+          }
+        });
+      }
+      
+      // Load user preferences dynamically
+      document.addEventListener("DOMContentLoaded", function() {
+        // Setup current notifications status
+        fetch("{{ url_for('notifications') if current_user.is_authenticated else '#' }}")
+        .then(res => {
+          // Verify unread bells count dynamically via custom script
+          const unreadCount = parseInt("{{ unread_notifications|length if unread_notifications else 0 }}");
+          const dot = document.getElementById("notifBellDot");
+          if (dot && unreadCount > 0) {
+            dot.classList.remove("d-none");
+          }
+        }).catch(() => {});
+        
+        // Setup initial theme icon status
+        const isDark = document.documentElement.classList.contains("dark-theme");
+        const icon = document.getElementById("themeModeIcon");
+        if(icon) {
+          icon.className = isDark ? "bi bi-moon-stars text-info" : "bi bi-brightness-high";
+        }
+      });
+    </script>
+    <script>
+      function togglePasswordVisibility(fieldId, element) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        const icon = element.querySelector('i');
+        if (field.type === 'password') {
+          field.type = 'text';
+          if (icon) {
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+          }
+        } else {
+          field.type = 'password';
+          if (icon) {
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+          }
+        }
+      }
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

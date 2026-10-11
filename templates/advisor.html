@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card p-4 border-custom mb-4 bg-gradient-primary text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+  <!-- Decorative Background Glow -->
+  <div class="position-absolute end-0 top-0 translate-middle-y opacity-10" style="width: 300px; height: 300px; border-radius: 50%; background: #0d6efd; filter: blur(80px);"></div>
+  <div class="position-absolute start-0 bottom-0 translate-middle-y opacity-10" style="width: 200px; height: 200px; border-radius: 50%; background: #38bdf8; filter: blur(50px);"></div>
+  
+  <div class="row align-items-center position-relative z-1">
+    <div class="col-md-8">
+      <span class="badge bg-primary-subtle text-primary border-custom mb-2 px-3 py-1.5 fs-9 fw-semibold"><i class="bi bi-cpu"></i> NEXT-GEN INTELLIGENCE</span>
+      <h2 class="fw-bold mb-1 text-white">AI Financial Advisor</h2>
+      <p class="text-slate-300 mb-0 opacity-75 fs-7.5">A secure, elite personal wealth manager fueled by your real-time data and Gemini cognitive engines.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+      <div class="d-inline-flex align-items-center gap-2 bg-dark bg-opacity-25 border-custom px-3 py-2 rounded-pill">
+        <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
+        <small class="text-white fw-bold fs-8">ADVISOR ENGAGED & ONLINE</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Side: Automated Financial Analysis Report -->
+  <div class="col-xl-6 col-lg-12">
+    <div class="card p-4 border-custom h-100 d-flex flex-column">
+      <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="bg-primary-subtle p-2 rounded-3 text-primary fs-5">
+            <i class="bi bi-journal-medical"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-0 text-dark">Automated Financial Report</h5>
+            <small class="text-muted fs-8.5">Instantly computed dynamically on page load</small>
+          </div>
+        </div>
+        <span id="health-badge" class="badge bg-secondary-subtle text-secondary px-2.5 py-1.5 fs-8.5">Analyzing...</span>
+      </div>
+
+      <!-- Report Content Display / Skeleton Screen Loader -->
+      <div id="report-container" class="flex-grow-1" style="min-height: 450px;">
+        <!-- Loading Skeleton Screen -->
+        <div id="report-loader">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="skeleton-circle" style="width: 50px; height: 50px; border-radius: 50%; background: #e2e8f0; animation: pulse 1.5s infinite;"></div>
+            <div class="w-70">
+              <div class="skeleton-line mb-2" style="width: 150px; height: 16px; background: #e2e8f0; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+              <div class="skeleton-line" style="width: 250px; height: 12px; background: #e2e8f0; border-radius: 4px; animation: pulse 1.5s infinite;"></div>
+            </div>
+          </div>
+          <div class="skeleton-line mb-3" style="width: 100%; height: 140px; background: #e2e8f0; border-radius: 8px; animation: pulse 1.5s infinite;"></div>
+          <div class="skeleton-line mb-3" style="width: 100%; height: 80px; background: #e2e8f0; border-radius: 8px; animation: pulse 1.5s infinite;"></div>
+          <div class="skeleton-line mb-3" style="width: 90%; height: 100px; background: #e2e8f0; border-radius: 8px; animation: pulse 1.5s infinite;"></div>
+        </div>
+        
+        <!-- Rendered Report Content -->
+        <div id="report-text" class="d-none text-secondary fs-7.5 lh-lg overflow-auto pr-2" style="max-height: 580px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: AI Conversation Assistant -->
+  <div class="col-xl-6 col-lg-12">
+    <div class="card p-4 border-custom h-100 d-flex flex-column" style="min-height: 650px;">
+      <div class="d-flex align-items-center gap-2 mb-3 border-bottom pb-3">
+        <div class="bg-success-subtle p-2 rounded-3 text-success fs-5">
+          <i class="bi bi-chat-text-fill"></i>
+        </div>
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">Advisory Chat Terminal</h5>
+          <small class="text-muted fs-8.5">Consult with FinSight AI on budgets, assets, and targets</small>
+        </div>
+      </div>
+
+      <!-- Chat Conversation History -->
+      <div id="chat-history-container" class="flex-grow-1 overflow-auto mb-3 p-2 bg-light bg-opacity-50 rounded-3 border-custom" style="height: 380px;">
+        <div class="chat-thread d-flex flex-column gap-3">
+          <!-- Initial AI Welcome Message -->
+          <div class="d-flex gap-2.5 align-self-start max-w-85">
+            <div class="flex-shrink-0 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+              <i class="bi bi-robot"></i>
+            </div>
+            <div class="p-3 rounded-3 bg-white border-custom shadow-sm text-dark fs-7.5">
+              <div class="fw-bold text-primary mb-1">FinSight AI Advisor</div>
+              Welcome back to your financial intelligence dashboard. I have compiled your personalized financial report in the left pane. 
+              <br><br>
+              How can I help you optimize your personal capital strategy today? Feel free to ask me questions or click any of the suggestion chips below.
+              <span class="d-block text-muted-custom fs-9 mt-1 text-end"><i class="bi bi-clock"></i> Just now</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div id="typing-indicator" class="d-none ms-5 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <small class="text-muted fs-8.5">Advisor is analyzing...</small>
+          <div class="typing-dots d-flex gap-1">
+            <span class="dot bg-primary"></span>
+            <span class="dot bg-primary"></span>
+            <span class="dot bg-primary"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggested Question Chips -->
+      <div id="proactive-questions-container" class="mb-3 d-flex flex-wrap gap-2">
+        <!-- Will be dynamically populated with custom suggestions based on user data -->
+      </div>
+
+      <!-- Input Bar -->
+      <div class="input-group">
+        <input type="text" id="user-input-field" class="form-control border-custom py-2.5 fs-7.5 bg-light-custom" placeholder="Ask your advisor about budgets, savings rate, risk exposure..." onkeydown="if(event.key === 'Enter') sendChatMessage()">
+        <button class="btn btn-primary-gradient px-4" type="button" onclick="sendChatMessage()">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+
+      <!-- Quick Static Action Suggestion Chips -->
+      <div class="mt-3 pt-2 border-top">
+        <div class="d-flex flex-wrap gap-1.5">
+          <button class="btn btn-sm btn-outline-secondary fs-9.5 py-1 px-2.5 border-custom" onclick="submitChipQuery('Analyze My Expenses')">Analyze My Expenses</button>
+          <button class="btn btn-sm btn-outline-secondary fs-9.5 py-1 px-2.5 border-custom" onclick="submitChipQuery('Compare Last 6 Months')">Compare Last 6 Months</button>
+          <button class="btn btn-sm btn-outline-secondary fs-9.5 py-1 px-2.5 border-custom" onclick="submitChipQuery('Explain Health Score')">Explain Health Score</button>
+          <button class="btn btn-sm btn-outline-secondary fs-9.5 py-1 px-2.5 border-custom" onclick="submitChipQuery('Improve My Budget')">Improve My Budget</button>
+          <button class="btn btn-sm btn-outline-secondary fs-9.5 py-1 px-2.5 border-custom" onclick="submitChipQuery('Investment Advice')">Investment Advice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Skeleton Screen Pulse Animation */
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  
+  /* Typing Indicator Dots Animation */
+  .typing-dots .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: bounce 1.3s infinite ease-in-out;
+  }
+  .typing-dots .dot:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dots .dot:nth-child(3) { animation-delay: 0.3s; }
+  
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+
+  .max-w-85 {
+    max-width: 85%;
+  }
+
+  .bg-light-custom {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+</style>
+
+<script>
+  let chatHistory = [];
+
+  // Lightweight custom markdown parser for rendering rich text elegantly
+  function parseMarkdown(text) {
+    if (!text) return "";
+    let html = text;
+    
+    // Replace headers
+    html = html.replace(/^### (.*$)/gim, '<h5 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-arrow-right-short text-primary"></i> $1</h5>');
+    html = html.replace(/^## (.*$)/gim, '<h4 class="fw-bold text-dark mt-4 mb-3 border-bottom pb-1">$1</h4>');
+    html = html.replace(/^# (.*$)/gim, '<h3 class="fw-bold text-dark mt-4 mb-3">$1</h3>');
+    
+    // Replace bold
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-dark font-semibold">$1</strong>');
+    
+    // Replace bullet points
+    html = html.replace(/^\s*•\s*(.*$)/gim, '<li class="mb-1.5">$1</li>');
+    html = html.replace(/^\s*-\s*(.*$)/gim, '<li class="mb-1.5">$1</li>');
+    
+    // Wrap consecutive list items in <ul>
+    let lines = html.split('\n');
+    let inList = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim().startsWith('<li')) {
+        if (!inList) {
+          lines[i] = '<ul class="ps-3 mb-3 text-secondary" style="list-style-type: square;">' + lines[i];
+          inList = true;
+        }
+      } else {
+        if (inList && lines[i].trim() !== '') {
+          lines[i - 1] = lines[i - 1] + '</ul>';
+          inList = false;
+        }
+      }
+    }
+    if (inList) {
+      lines[lines.length - 1] = lines[lines.length - 1] + '</ul>';
+    }
+    html = lines.join('\n');
+    
+    // Replace newlines with paragraph spacing
+    html = html.replace(/\n\n/g, '<p class="mb-3"></p>');
+    html = html.replace(/\n/g, '<br>');
+    return html;
+  }
+
+  // Fetch dynamic AI analysis on page load
+  document.addEventListener("DOMContentLoaded", async function() {
+    try {
+      const response = await fetch("/api/advisor/analyze");
+      const data = await response.json();
+      
+      if (data.success) {
+        // Hide loader and show report
+        document.getElementById("report-loader").classList.add("d-none");
+        const textContainer = document.getElementById("report-text");
+        textContainer.classList.remove("d-none");
+        textContainer.innerHTML = parseMarkdown(data.report);
+        
+        // Update health badge
+        const badge = document.getElementById("health-badge");
+        badge.textContent = data.rating;
+        if (data.rating === 'Excellent' || data.rating === 'Strong Growth') {
+          badge.className = "badge bg-success text-white px-2.5 py-1.5 fs-8.5";
+        } else if (data.rating === 'Balanced') {
+          badge.className = "badge bg-warning text-dark px-2.5 py-1.5 fs-8.5";
+        } else {
+          badge.className = "badge bg-danger text-white px-2.5 py-1.5 fs-8.5";
+        }
+
+        // Render proactive questions
+        renderProactiveQuestions(data.proactive_questions);
+      } else {
+        showReportError("Failed to synthesize report. Please try reloading.");
+      }
+    } catch (e) {
+      console.error(e);
+      showReportError("Network interface failure. Ensure dev server state is clean.");
+    }
+  });
+
+  function showReportError(msg) {
+    document.getElementById("report-loader").classList.add("d-none");
+    const textContainer = document.getElementById("report-text");
+    textContainer.classList.remove("d-none");
+    textContainer.innerHTML = `
+      <div class="text-center py-5 text-muted-custom">
+        <i class="bi bi-exclamation-triangle fs-1 text-danger d-block mb-2"></i>
+        <span>${msg}</span>
+      </div>
+    `;
+  }
+
+  function renderProactiveQuestions(questions) {
+    const container = document.getElementById("proactive-questions-container");
+    container.innerHTML = "";
+    
+    if (!questions || questions.length === 0) return;
+    
+    // Add small hint title
+    const title = document.createElement("small");
+    title.className = "text-muted d-block w-100 mb-1 fw-bold fs-9.5";
+    title.innerHTML = '<i class="bi bi-stars text-primary"></i> Advisor Recommended Follow-ups:';
+    container.appendChild(title);
+
+    questions.forEach(q => {
+      const btn = document.createElement("button");
+      btn.className = "btn btn-sm btn-outline-primary fs-9.5 py-1.5 px-3 border-custom text-start text-truncate max-w-100 shadow-sm bg-white";
+      btn.style.borderRadius = "12px";
+      btn.innerHTML = `<i class="bi bi-question-circle text-primary me-1.5"></i> ${q}`;
+      btn.onclick = () => submitChipQuery(q);
+      container.appendChild(btn);
+    });
+  }
+
+  // Send Chat message to backend
+  async function sendChatMessage() {
+    const input = document.getElementById("user-input-field");
+    const query = input.value.trim();
+    if (!query) return;
+    
+    input.value = "";
+    appendUserMessage(query);
+    
+    // Show typing indicator
+    const typing = document.getElementById("typing-indicator");
+    typing.classList.remove("d-none");
+    scrollToBottom();
+
+    try {
+      const response = await fetch("/api/advisor/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: query, history: chatHistory })
+      });
+      const data = await response.json();
+      
+      typing.classList.add("d-none");
+
+      if (data.success) {
+        appendAIMessage(data.reply);
+        // Save to context history
+        chatHistory.push({ role: "user", content: query });
+        chatHistory.push({ role: "model", content: data.reply });
+        
+        // Re-render suggestions dynamically
+        renderProactiveQuestions(data.proactive_questions);
+      } else {
+        appendAIMessage("I encountered a connection glitch while processing that request. Could you please resubmit your query?");
+      }
+    } catch (e) {
+      typing.classList.add("d-none");
+      console.error(e);
+      appendAIMessage("The interface was interrupted. Please verify your connection limits.");
+    }
+  }
+
+  function submitChipQuery(queryText) {
+    appendUserMessage(queryText);
+    
+    // Clear chips to avoid duplicate clicks
+    document.getElementById("proactive-questions-container").innerHTML = "";
+    
+    // Show typing indicator
+    const typing = document.getElementById("typing-indicator");
+    typing.classList.remove("d-none");
+    scrollToBottom();
+
+    fetch("/api/advisor/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: queryText, history: chatHistory })
+    })
+    .then(res => res.json())
+    .then(data => {
+      typing.classList.add("d-none");
+      if (data.success) {
+        appendAIMessage(data.reply);
+        chatHistory.push({ role: "user", content: queryText });
+        chatHistory.push({ role: "model", content: data.reply });
+        renderProactiveQuestions(data.proactive_questions);
+      } else {
+        appendAIMessage("I am currently resolving a brief server delay. Let's try that again.");
+      }
+    })
+    .catch(e => {
+      typing.classList.add("d-none");
+      console.error(e);
+      appendAIMessage("I could not access my cognitive backend. Let's check the database interface.");
+    });
+  }
+
+  function appendUserMessage(text) {
+    const thread = document.querySelector(".chat-thread");
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "d-flex gap-2.5 align-self-end max-w-85";
+    
+    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    msgDiv.innerHTML = `
+      <div class="p-3 rounded-3 bg-primary text-white shadow-sm fs-7.5" style="background: linear-gradient(135deg, #0d6efd 0%, #0284c7 100%); border-radius: 16px 16px 0px 16px !important;">
+        <div class="fw-bold mb-1 opacity-90">You</div>
+        <div>${text}</div>
+        <span class="d-block opacity-75 fs-9 mt-1 text-end"><i class="bi bi-clock"></i> ${now}</span>
+      </div>
+    `;
+    
+    thread.appendChild(msgDiv);
+    scrollToBottom();
+  }
+
+  function appendAIMessage(text) {
+    const thread = document.querySelector(".chat-thread");
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "d-flex gap-2.5 align-self-start max-w-85";
+    
+    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    msgDiv.innerHTML = `
+      <div class="flex-shrink-0 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div class="p-3 rounded-3 bg-white border-custom shadow-sm text-dark fs-7.5" style="border-radius: 16px 16px 16px 0px !important;">
+        <div class="fw-bold text-primary mb-1">FinSight AI Advisor</div>
+        <div>${parseMarkdown(text)}</div>
+        <span class="d-block text-muted-custom fs-9 mt-1 text-end"><i class="bi bi-clock"></i> ${now}</span>
+      </div>
+    `;
+    
+    thread.appendChild(msgDiv);
+    scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    const container = document.getElementById("chat-history-container");
+    container.scrollTop = container.scrollHeight;
+  }
+</script>
+{% endblock %}

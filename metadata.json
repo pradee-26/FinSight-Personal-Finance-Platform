@@ -1,0 +1,6 @@
+{
+  "name": "FinSight",
+  "description": "A comprehensive Personal Finance and Investment Intelligence Platform allowing secure registration, expense tracking, budgeting, portfolio monitoring, financial goals and intelligent alerts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card p-4 border-custom mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <h3 class="fw-bold mb-1">Financial Analytics Dashboard</h3>
+      <p class="text-secondary mb-0">Review granular metrics, spending distributions, category-level outlays, and relative saving indices.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <form action="{{ url_for('analytics') }}" method="GET" class="d-inline-flex gap-2">
+        <select class="form-select border-custom" name="timeframe" onchange="this.form.submit()">
+          <option value="30" {% if timeframe == '30' %}selected{% endif %}>Last 30 Days</option>
+          <option value="90" {% if timeframe == '90' %}selected{% endif %}>Last 90 Days</option>
+          <option value="180" {% if timeframe == '180' %}selected{% endif %}>Last 180 Days</option>
+          <option value="365" {% if timeframe == '365' %}selected{% endif %}>Last Year</option>
+        </select>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Interactive Charts Grid -->
+  <div class="col-lg-6">
+    <div class="card p-4 border-custom h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill text-primary"></i> Expense Category Breakdown</h5>
+      <p class="text-muted-custom fs-8.5">Visual representation of total spending distribution across different transaction sectors.</p>
+      <div style="height: 320px;" class="d-flex align-items-center justify-content-center">
+        <canvas id="categoryPieChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card p-4 border-custom h-100">
+      <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-steps text-info"></i> Budget Allocations & Outlays</h5>
+      <p class="text-muted-custom fs-8.5">Comparison of defined spending category limits against actual monthly transaction costs.</p>
+      <div style="height: 320px;" class="d-flex align-items-center justify-content-center">
+        <canvas id="budgetComparisonBarChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Key Performance Indicators & Ratios -->
+  <div class="col-lg-8">
+    <div class="card p-4 border-custom">
+      <h5 class="fw-bold mb-3"><i class="bi bi-percent text-success"></i> Key Financial Performance Indices</h5>
+      <p class="text-muted-custom fs-8.5">Financial indices compiled based on your income, expenses, active asset reserves, and goals contributions.</p>
+      
+      <div class="row g-3">
+        <!-- Savings Rate Index -->
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded-3 border-custom">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fs-7.5 fw-bold text-dark">Savings Coefficient Index</span>
+              <span class="badge bg-success-subtle text-success font-monospace">{{ "%.1f"|format(metrics.savings_rate) }}%</span>
+            </div>
+            <div class="progress mb-2" style="height: 6px;">
+              <div class="progress-bar bg-success" role="progressbar" style="width: {{ metrics.savings_rate if metrics.savings_rate > 0 else 0 }}%"></div>
+            </div>
+            <small class="text-muted-custom fs-8.5">Target is to save at least 20% of net monthly income. Healthy benchmarks sit above 15%.</small>
+          </div>
+        </div>
+        
+        <!-- Liquidity index -->
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded-3 border-custom">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fs-7.5 fw-bold text-dark">Liquidity / Runway Ratio</span>
+              <span class="badge bg-primary-subtle text-primary font-monospace">{{ "%.1f"|format(metrics.liquidity_ratio) }} Months</span>
+            </div>
+            <div class="progress mb-2" style="height: 6px;">
+              <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (metrics.liquidity_ratio / 6 * 100) if metrics.liquidity_ratio < 6 else 100 }}%"></div>
+            </div>
+            <small class="text-muted-custom fs-8.5">Calculated as liquid cash divided by average monthly expense load. Ideal runway is 3 to 6 months.</small>
+          </div>
+        </div>
+
+        <!-- Investment Coefficient -->
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded-3 border-custom">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fs-7.5 fw-bold text-dark">Investment Coverage Index</span>
+              <span class="badge bg-info-subtle text-info font-monospace">{{ "%.1f"|format(metrics.investment_coefficient) }}%</span>
+            </div>
+            <div class="progress mb-2" style="height: 6px;">
+              <div class="progress-bar bg-info" role="progressbar" style="width: {{ metrics.investment_coefficient if metrics.investment_coefficient < 100 else 100 }}%"></div>
+            </div>
+            <small class="text-muted-custom fs-8.5">Represents total capital principal logged in assets relative to overall income cache.</small>
+          </div>
+        </div>
+
+        <!-- Debt service target -->
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded-3 border-custom">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fs-7.5 fw-bold text-dark">Debt Coverage Buffer</span>
+              <span class="badge bg-warning-subtle text-warning font-monospace">Stable</span>
+            </div>
+            <div class="progress mb-2" style="height: 6px;">
+              <div class="progress-bar bg-warning" role="progressbar" style="width: 85%"></div>
+            </div>
+            <small class="text-muted-custom fs-8.5">Represents stability of non-discretionary commitments (Housing, Utilities) vs salary income.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goal Progress Overview Card -->
+    <div class="card p-4 border-custom mt-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-flag-fill text-primary"></i> Goal Progress Overview</h5>
+      <p class="text-muted-custom fs-8.5 mb-4">Track savings milestones, remaining targets, accomplishment deadlines, and active completion statuses.</p>
+      
+      {% if current_user.goals %}
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+          {% for g in current_user.goals %}
+            <div class="col">
+              <div class="card h-100 border-custom p-3 bg-white shadow-sm">
+                <!-- Header: Icon & Badge -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fs-8.5 fw-bold text-dark">
+                    {% if g.category == 'Savings' %}
+                      <i class="bi bi-piggy-bank text-success me-1"></i>
+                    {% elif g.category == 'Education' %}
+                      <i class="bi bi-book text-primary me-1"></i>
+                    {% elif g.category == 'Travel' %}
+                      <i class="bi bi-airplane text-info me-1"></i>
+                    {% elif g.category == 'Retirement' %}
+                      <i class="bi bi-shield-lock text-warning me-1"></i>
+                    {% elif g.category == 'Property' %}
+                      <i class="bi bi-house text-danger me-1"></i>
+                    {% else %}
+                      <i class="bi bi-flag text-secondary me-1"></i>
+                    {% endif %}
+                    {{ g.name }}
+                  </span>
+                  {% if g.status == 'Completed' %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle fs-9 px-2 py-0.5">Completed</span>
+                  {% elif g.status == 'Overdue' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-9 px-2 py-0.5">Overdue</span>
+                  {% else %}
+                    <span class="badge bg-info-subtle text-info border border-info-subtle fs-9 px-2 py-0.5">In Progress</span>
+                  {% endif %}
+                </div>
+                
+                <!-- Deadline & Days Left -->
+                <div class="text-muted-custom fs-9 mb-2">
+                  <span>Deadline: {{ g.deadline.strftime('%Y-%m-%d') }}</span>
+                  <span class="d-block mt-0.5">
+                    {% if g.status == 'Completed' %}
+                      <span class="text-success fw-semibold"><i class="bi bi-check2-circle"></i> Milestone Achieved!</span>
+                    {% elif g.days_remaining < 0 %}
+                      <span class="text-danger fw-semibold"><i class="bi bi-clock-history"></i> Overdue by {{ g.days_remaining | abs }} days</span>
+                    {% else %}
+                      <span class="text-primary fw-semibold"><i class="bi bi-clock"></i> {{ g.days_remaining }} days remaining</span>
+                    {% endif %}
+                  </span>
+                </div>
+                
+                <!-- Details -->
+                <div class="d-flex justify-content-between align-items-center fs-8.5 mb-2">
+                  <span class="text-muted-custom">Saved: <strong class="text-success">{{ currency_symbol }}{{ "%.2f"|format(g.current_amount) }}</strong></span>
+                  <span class="text-muted-custom">Target: <strong class="text-dark">{{ currency_symbol }}{{ "%.2f"|format(g.target_amount) }}</strong></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center fs-8.5 mb-2">
+                  <span class="text-muted-custom">Remaining Needed:</span>
+                  <span class="fw-bold text-secondary">{{ currency_symbol }}{{ "%.2f"|format(g.remaining_amount) }}</span>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-1 fs-9">
+                    <span class="text-muted-custom">Progress:</span>
+                    <span class="fw-bold text-primary">{{ g.pct }}%</span>
+                  </div>
+                  <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-gradient {% if g.status == 'Completed' %}bg-success{% elif g.status == 'Overdue' %}bg-danger{% else %}bg-primary{% endif %}" 
+                         role="progressbar" 
+                         style="width: {{ g.pct }}%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted-custom bg-light rounded-3">
+          <i class="bi bi-flag fs-3 text-primary d-block mb-2"></i>
+          <h6 class="fw-bold mb-1">No Financial Goals Found.</h6>
+          <p class="fs-8 mb-3">Define target milestones to secure your cash runways.</p>
+          <a href="{{ url_for('goals') }}" class="btn btn-sm btn-outline-primary px-3 py-1.5 border-custom">Establish First Saving Goal</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right side: Quick health advice recommendations -->
+  <div class="col-lg-4">
+    <div class="card p-4 border-custom bg-light-accent h-100">
+      <h5 class="fw-bold text-primary mb-3"><i class="bi bi-patch-check"></i> Analytics Insight Report</h5>
+      <p class="text-muted-custom fs-7.5 mb-3">Our analytical processor compiles these findings securely based on historical cash entries:</p>
+      
+      <div class="d-flex flex-column gap-3.5">
+        <div class="d-flex gap-3">
+          <div class="text-success fs-4"><i class="bi bi-arrow-up-right-circle-fill"></i></div>
+          <div>
+            <h6 class="fw-bold mb-0.5 fs-7.5">Top Outlay Vector</h6>
+            <p class="text-muted-custom fs-8 mb-0">Highest spending is observed in category <strong class="text-dark">{{ metrics.top_spending_category or 'None yet' }}</strong>, representing a key optimization channel.</p>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3">
+          <div class="text-primary fs-4"><i class="bi bi-clock"></i></div>
+          <div>
+            <h6 class="fw-bold mb-0.5 fs-7.5">Average Monthly Outflow</h6>
+            <p class="text-muted-custom fs-8 mb-0">Your recurring expense load averages <strong class="text-dark">{{ currency_symbol }}{{ "%.2f"|format(metrics.avg_monthly_spent) }}</strong>, helping forecast cash runways.</p>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3">
+          <div class="text-info fs-4"><i class="bi bi-shield-check"></i></div>
+          <div>
+            <h6 class="fw-bold mb-0.5 fs-7.5">Income-to-Expense Safety</h6>
+            <p class="text-muted-custom fs-8 mb-0">Total logged income sits at <strong class="text-dark">{{ currency_symbol }}{{ "%.2f"|format(metrics.total_income) }}</strong> against outlays of <strong class="text-dark">{{ currency_symbol }}{{ "%.2f"|format(metrics.total_expenses) }}</strong>, verifying positive capital growth.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // 1. Spending Category Pie Chart
+    const catLabels = [];
+    const catValues = [];
+    {% for cat, val in metrics.categories_breakdown.items() %}
+      catLabels.push("{{ cat }}");
+      catValues.push({{ val }});
+    {% endfor %}
+
+    const pieCtx = document.getElementById('categoryPieChart');
+    if (pieCtx && catLabels.length > 0) {
+      new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+          labels: catLabels,
+          datasets: [{
+            data: catValues,
+            backgroundColor: [
+              '#0d6efd', '#0284c7', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444', '#64748b'
+            ],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                font: { size: 11 }
+              }
+            }
+          }
+        }
+      });
+    } else if (pieCtx) {
+      // Empty placeholder state for Chart.js
+      pieCtx.parentNode.innerHTML = `<div class="text-center text-muted fs-8 py-5">No transaction data available to plot categories breakdown.</div>`;
+    }
+
+    // 2. Budget Comparison Bar Chart
+    const budgetLabels = [];
+    const budgetLimits = [];
+    const budgetSpent = [];
+    {% for item in budget_details %}
+      budgetLabels.push("{{ item.budget.category }}");
+      budgetLimits.push({{ item.budget.amount_limit }});
+      budgetSpent.push({{ item.spent }});
+    {% endfor %}
+
+    const barCtx = document.getElementById('budgetComparisonBarChart');
+    if (barCtx && budgetLabels.length > 0) {
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: budgetLabels,
+          datasets: [
+            {
+              label: 'Limit Amount (' + '{{ currency_symbol }}' + ')',
+              data: budgetLimits,
+              backgroundColor: '#e2e8f0',
+              borderRadius: 6,
+            },
+            {
+              label: 'Spent Amount (' + '{{ currency_symbol }}' + ')',
+              data: budgetSpent,
+              backgroundColor: '#0d6efd',
+              borderRadius: 6,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, font: { size: 11 } }
+            }
+          }
+        }
+      });
+    } else if (barCtx) {
+      barCtx.parentNode.innerHTML = `<div class="text-center text-muted fs-8 py-5">No budget categories defined to compare. Add limits under Budgets tab.</div>`;
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block auth_content %}
+<div class="row justify-content-center align-items-center" style="min-height: 85vh;">
+  <div class="col-md-6 col-lg-5">
+    
+    <div class="text-center mb-4">
+      <div class="bg-primary bg-gradient p-3 rounded-circle text-white d-inline-block shadow mb-2">
+        <i class="bi bi-wallet2 fs-2"></i>
+      </div>
+      <h3 class="fw-bold text-primary">Join FinSight</h3>
+      <p class="text-secondary mb-0">Secure registration for banking & portfolio dashboard</p>
+    </div>
+    
+    <div class="card p-4 border-custom">
+      <h4 class="fw-bold mb-3">Register</h4>
+      
+      <form action="{{ url_for('register') }}" method="POST" enctype="multipart/form-data">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="username" class="form-label fw-semibold">Username</label>
+            <input type="text" class="form-control border-custom" id="username" name="username" placeholder="ArjunMehta" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="monthly_income" class="form-label fw-semibold">Monthly Income</label>
+            <input type="number" step="0.01" class="form-control border-custom" id="monthly_income" name="monthly_income" placeholder="5000.00" required>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-12 mb-3">
+            <label for="currency" class="form-label fw-semibold">Dashboard Currency</label>
+            <select class="form-select border-custom" id="currency" name="currency" required onchange="toggleCustomCurrencyRegister(this)">
+              <option value="$" selected>$ (USD - Dollar)</option>
+              <option value="₹">₹ (INR - Rupee)</option>
+              <option value="£">£ (GBP - Pound)</option>
+              <option value="€">€ (EUR - Euro)</option>
+              <option value="custom">Other (Custom Symbol)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3" id="custom_currency_row" style="display: none;">
+          <label for="custom_currency" class="form-label fw-semibold">Custom Currency Symbol</label>
+          <input type="text" class="form-control border-custom" id="custom_currency" name="custom_currency" placeholder="e.g. CAD, ¥, CHF">
+          <small class="text-muted fs-9">Enter any symbol or currency code (e.g., CAD, ¥, CHF).</small>
+        </div>
+
+        <script>
+          function toggleCustomCurrencyRegister(select) {
+            const row = document.getElementById('custom_currency_row');
+            if (select.value === 'custom') {
+              row.style.display = 'block';
+            } else {
+              row.style.display = 'none';
+            }
+          }
+        </script>
+        
+        <div class="mb-3">
+          <label for="email" class="form-label fw-semibold">Email Address</label>
+          <input type="email" class="form-control border-custom" id="email" name="email" placeholder="name@bank.com" required>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="password" class="form-label fw-semibold">Password</label>
+            <div class="input-group">
+              <input type="password" class="form-control border-custom border-end-0" id="password" name="password" placeholder="••••••••" required>
+              <span class="input-group-text bg-white border-custom border-start-0 text-muted" onclick="togglePasswordVisibility('password', this)" style="cursor: pointer;">
+                <i class="bi bi-eye"></i>
+              </span>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="confirm_password" class="form-label fw-semibold">Confirm Password</label>
+            <div class="input-group">
+              <input type="password" class="form-control border-custom border-end-0" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
+              <span class="input-group-text bg-white border-custom border-start-0 text-muted" onclick="togglePasswordVisibility('confirm_password', this)" style="cursor: pointer;">
+                <i class="bi bi-eye"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Challenge question setup for forgot password module -->
+        <div class="mb-3">
+          <label for="security_question" class="form-label fw-semibold">Select Security Question</label>
+          <select class="form-select border-custom" id="security_question" name="security_question" required>
+            <option value="" disabled selected>Choose a security challenge...</option>
+            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+            <option value="What was the model of your first car?">What was the model of your first car?</option>
+            <option value="In what city were you born?">In what city were you born?</option>
+          </select>
+        </div>
+        
+        <div class="mb-3">
+          <label for="security_answer" class="form-label fw-semibold">Security Challenge Answer</label>
+          <input type="text" class="form-control border-custom" id="security_answer" name="security_answer" placeholder="Your secret answer" required>
+          <small class="text-muted d-block mt-1">Used to recover passwords securely without SMS or email integrations.</small>
+        </div>
+        
+        <div class="mb-3">
+          <label for="profile_pic" class="form-label fw-semibold">Profile Photo (Optional)</label>
+          <input class="form-control border-custom" type="file" id="profile_pic" name="profile_pic" accept="image/png, image/jpeg, image/jpg">
+        </div>
+        
+        <button type="submit" class="btn btn-primary-gradient w-100 py-2.5 mt-2">Create Secure Account</button>
+      </form>
+      
+      <div class="text-center mt-3">
+        <span class="text-muted-custom fs-7">Already registered? </span>
+        <a href="{{ url_for('login') }}" class="text-decoration-none fw-semibold fs-7">Sign In instead</a>
+      </div>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}

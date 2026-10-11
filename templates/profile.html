@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card p-4 border-custom mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <h3 class="fw-bold mb-1">Settings & Profile</h3>
+      <p class="text-secondary mb-0">Update your security question settings, base monthly salary income, profile photo, and platform configuration.</p>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left: Update Profile settings -->
+  <div class="col-lg-7">
+    <div class="card p-4 border-custom mb-4">
+      <h5 class="fw-bold mb-4"><i class="bi bi-person-gear"></i> Update Profile Credentials</h5>
+      
+      <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="update_profile">
+        
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="username" class="form-label fw-semibold">Account Username</label>
+            <input type="text" class="form-control border-custom bg-light" id="username" name="username" value="{{ current_user.username }}" readonly>
+            <small class="text-muted fs-9">Usernames cannot be updated to preserve secure DB keys.</small>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="email" class="form-label fw-semibold">Email Address</label>
+            <input type="email" class="form-control border-custom" id="email" name="email" value="{{ current_user.email }}" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="monthly_income" class="form-label fw-semibold">Active Monthly Income ({{ currency_symbol }})</label>
+            <input type="number" step="0.01" class="form-control border-custom" id="monthly_income" name="monthly_income" value="{{ current_user.monthly_income }}" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="profile_pic" class="form-label fw-semibold">Update Avatar Image</label>
+            <input class="form-control border-custom" type="file" id="profile_pic" name="profile_pic" accept="image/png, image/jpeg, image/jpg">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12 mb-3">
+            <label for="currency" class="form-label fw-semibold">Platform Currency Preference</label>
+            <select class="form-select border-custom" id="currency" name="currency" required onchange="toggleCustomCurrencyProfile(this)">
+              <option value="$" {% if current_user.currency == '$' %}selected{% endif %}>$ (USD - Dollar)</option>
+              <option value="₹" {% if current_user.currency == '₹' %}selected{% endif %}>₹ (INR - Rupee)</option>
+              <option value="£" {% if current_user.currency == '£' %}selected{% endif %}>£ (GBP - Pound)</option>
+              <option value="€" {% if current_user.currency == '€' %}selected{% endif %}>€ (EUR - Euro)</option>
+              <option value="custom" {% if current_user.currency not in ['$', '₹', '£', '€'] %}selected{% endif %}>Other (Custom Symbol)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-3" id="custom_currency_row_profile" style="{% if current_user.currency in ['$', '₹', '£', '€'] %}display: none;{% endif %}">
+          <div class="col-md-12">
+            <label for="custom_currency" class="form-label fw-semibold">Custom Currency Symbol</label>
+            <input type="text" class="form-control border-custom" id="custom_currency" name="custom_currency" value="{% if current_user.currency not in ['$', '₹', '£', '€'] %}{{ current_user.currency }}{% endif %}" placeholder="e.g. CAD, ¥, CHF">
+            <small class="text-muted fs-9">Enter any symbol or currency code (e.g., CAD, ¥, CHF).</small>
+          </div>
+        </div>
+
+        <script>
+          function toggleCustomCurrencyProfile(select) {
+            const row = document.getElementById('custom_currency_row_profile');
+            if (select.value === 'custom') {
+              row.style.display = 'flex';
+            } else {
+              row.style.display = 'none';
+            }
+          }
+        </script>
+
+        <hr class="border-custom my-3">
+        <h6 class="fw-bold mb-3">Update Security Challenge (Recovery Key)</h6>
+
+        <div class="mb-3">
+          <label for="security_question" class="form-label fw-semibold">Challenge Question</label>
+          <select class="form-select border-custom" id="security_question" name="security_question" required>
+            <option value="What was the name of your first pet?" {% if current_user.security_question == 'What was the name of your first pet?' %}selected{% endif %}>What was the name of your first pet?</option>
+            <option value="What is your mother's maiden name?" {% if current_user.security_question == "What is your mother's maiden name?" %}selected{% endif %}>What is your mother's maiden name?</option>
+            <option value="What was the model of your first car?" {% if current_user.security_question == 'What was the model of your first car?' %}selected{% endif %}>What was the model of your first car?</option>
+            <option value="In what city were you born?" {% if current_user.security_question == 'In what city were you born?' %}selected{% endif %}>In what city were you born?</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="security_answer" class="form-label fw-semibold">Challenge Answer</label>
+          <input type="text" class="form-control border-custom" id="security_answer" name="security_answer" value="{{ current_user.security_answer }}" required placeholder="Type answer key here">
+        </div>
+
+        <button type="submit" class="btn btn-primary-gradient w-100 py-2.5 mt-3">Commit Credentials Update</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right: Account Status & Danger zone database reset -->
+  <div class="col-lg-5">
+    <!-- Active Avatar preview card -->
+    <div class="card p-4 border-custom text-center mb-4 shadow-sm bg-white">
+      <div class="position-relative d-inline-block mx-auto mb-3">
+        <img src="/static/uploads/profiles/{{ current_user.profile_pic }}" alt="Avatar" class="rounded-circle border border-4 border-custom" width="120" height="120" style="object-fit: cover;" onerror="this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'">
+      </div>
+      <h5 class="fw-bold mb-1">{{ current_user.username }}</h5>
+      <span class="text-muted-custom fs-8.5">Verified FinSight Wealth Member</span>
+      <p class="fs-8 text-muted-custom mt-2 mb-0">Member since: {{ current_user.id }} | System Session secured via SQLite Local Database.</p>
+    </div>
+
+    <!-- Change Password Card -->
+    <div class="card p-4 border-custom shadow-sm mb-4 bg-white">
+      <h5 class="fw-bold mb-3"><i class="bi bi-shield-lock-fill text-primary"></i> Change Security Password</h5>
+      <p class="text-muted-custom fs-8.5 mb-4">Keep your enterprise credentials secure. Choose a strong security password.</p>
+      
+      <form action="{{ url_for('profile') }}" method="POST">
+        <input type="hidden" name="action" value="change_password">
+        
+        <div class="mb-3">
+          <label for="old_password" class="form-label fw-semibold">Current Password</label>
+          <div class="input-group">
+            <input type="password" class="form-control border-custom border-end-0" id="old_password" name="old_password" placeholder="••••••••" required>
+            <span class="input-group-text bg-white border-custom border-start-0 text-muted" onclick="togglePasswordVisibility('old_password', this)" style="cursor: pointer;">
+              <i class="bi bi-eye"></i>
+            </span>
+          </div>
+        </div>
+        
+        <div class="mb-3">
+          <label for="new_password" class="form-label fw-semibold">New Password</label>
+          <div class="input-group">
+            <input type="password" class="form-control border-custom border-end-0" id="new_password" name="new_password" placeholder="••••••••" required>
+            <span class="input-group-text bg-white border-custom border-start-0 text-muted" onclick="togglePasswordVisibility('new_password', this)" style="cursor: pointer;">
+              <i class="bi bi-eye"></i>
+            </span>
+          </div>
+        </div>
+        
+        <div class="mb-3">
+          <label for="confirm_password" class="form-label fw-semibold">Confirm New Password</label>
+          <div class="input-group">
+            <input type="password" class="form-control border-custom border-end-0" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
+            <span class="input-group-text bg-white border-custom border-start-0 text-muted" onclick="togglePasswordVisibility('confirm_password', this)" style="cursor: pointer;">
+              <i class="bi bi-eye"></i>
+            </span>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary-gradient w-100 py-2.5 mt-2">Update Security Password</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
