@@ -15,3 +15,5 @@ instance/
 *.sqlite
 *.sqlite3
 static/uploads/receipts/*
+static/uploads/
+FinSight/static/uploads/
